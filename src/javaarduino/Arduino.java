@@ -4,9 +4,14 @@ import com.fazecast.jSerialComm.SerialPort;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Scanner;
+import com.fazecast.jSerialComm.SerialPort;
+import static java.lang.Math.abs;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  *
@@ -15,11 +20,12 @@ import java.util.logging.Logger;
 
 public class Arduino implements ArduinoComunication{
     private SerialPort comPort;
-    private final ArrayList<Integer> pines;
+    private int[] digitalPins;
+    private int[] analogPins;
+    private int[] analogReadPins;
 
     public Arduino() {
         inicializeComunication();
-        this.pines = new ArrayList<Integer>();
         obtainAvailablePorts();
     }
 
@@ -41,14 +47,35 @@ public class Arduino implements ArduinoComunication{
     private void obtainAvailablePorts(){
         InputStream io = comPort.getInputStream();
         int pin;
-        try {
-            while(io.available()>0){
+        try{
+            //Contamos el nº de pines de cada tipo
+            pin = (int) io.read();
+            this.digitalPins = new int[pin];
+            System.out.println(pin);
+            pin = (int) io.read();
+            this.analogPins = new int[pin];
+            System.out.println(pin);
+            pin = (int) io.read();
+            this.analogReadPins = new int[pin];
+            System.out.println(pin);
+            //Leemos los pines
+            for(int i=0; i<digitalPins.length && io.available()>0; i++){
                 pin = (int) io.read();
-                pines.add(pin);
+                this.digitalPins[i] = pin;
+                System.out.println(pin);
             }
-        } catch (IOException ex) {
+            for(int i=0; i<analogPins.length && io.available()>0; i++){
+                pin = (int) io.read();
+                this.analogPins[i] = pin;
+                System.out.println(pin);
+            }
+            for(int i=0; i<analogReadPins.length && io.available()>0; i++){
+                pin = (int) io.read();
+                this.analogReadPins[i] = abs(255-pin);
+                System.out.println(pin);
+            }
+        } catch(IOException e){
         }
-        
     }
 
     @Override
@@ -58,17 +85,12 @@ public class Arduino implements ArduinoComunication{
 
     @Override
     public void turnOn(int pin){
-        try {
-            OutputStream out = comPort.getOutputStream();
-            if(pines.contains(pin))
-                out.write(pin);
-        } catch (Exception e) {
-        }
+        turn(pin, true);
     }
 
     @Override
     public void turnOff(int pin) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        turn(pin, false);
     }
 
     @Override
@@ -86,6 +108,29 @@ public class Arduino implements ArduinoComunication{
     @Override
     public void readData(boolean print) {
         
+    }
+    
+    private boolean contains(int[] pines, int pin){
+        for(int i=0; i<pines.length; i++){
+            if(pin==pines[i])
+                return true;
+        }
+        return false;
+    }
+    
+    private void turn(int pin, boolean value){
+        try {
+            OutputStream out = comPort.getOutputStream();
+            if(contains(digitalPins, pin)){
+                out.write(1);
+                out.write(pin);
+                System.out.print(value);
+                int kk = value? 1: 0;
+                System.out.print(kk);
+                out.write(kk);
+            }
+        } catch (Exception e) {
+        }
     }
 
 }
