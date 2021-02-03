@@ -17,7 +17,13 @@ public class JavaArduino {
     public static void main(String[] args) throws IOException, InterruptedException {
         Arduino arduino = new Arduino();
         arduino.turnOn(7);
-        
+        arduino.turnOn(6);
+        arduino.turn(10, 125);
+        arduino.turn(11, 200);
+        Thread.sleep(500);
+        arduino.turn(11, 1);
+        arduino.readAnalogPin(0);
+        arduino.finishComunication();
     }
 
 }

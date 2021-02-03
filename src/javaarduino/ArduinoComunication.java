@@ -10,10 +10,11 @@ package javaarduino;
  * @author Iván
  */
 public interface ArduinoComunication {
-    public void inicializeComunication();
-    public void finishComunication();
     public void turnOn(int pin);
     public void turnOff(int pin);
+    public void turn(int pin, int value);
+    public int readAnalogPin(int pin);
     public void readData();
     public void readData(boolean print);
+    public void finishComunication();
 }
